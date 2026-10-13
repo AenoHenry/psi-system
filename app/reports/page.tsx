@@ -2,219 +2,90 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-type Contribution = {
-  amount: number;
-  created_at: string | null;
-};
+export const dynamic = "force-dynamic";
 
-type Repayment = {
-  amount: number;
-  created_at: string | null;
-};
-
-type Loan = {
-  principal_amount: number;
-  interest_amount: number;
-  total_amount: number;
-  amount_paid: number;
-  balance: number;
-  status: string;
-  created_at: string | null;
-};
-
-type Member = {
-  id: string;
-  full_name: string;
-  status: string;
+type Summary = {
+  group: {
+    confirmed_savings: string;
+    outstanding_loans: string;
+    active_members: number;
+    outstanding_loan_count: number;
+  };
+  personal: {
+    confirmed_savings: string;
+    outstanding_loans: string;
+    maximum_loan: string;
+    available_loan: string;
+  };
+  report: {
+    total_loan_records: number;
+    pending_loans: number;
+    approved_awaiting_disbursement: number;
+    funded_loan_count: number;
+    principal_issued: string;
+    contracted_interest: string;
+    total_repayable_on_funded_loans: string;
+    paid_on_loan_records: string;
+    repayment_record_count: number;
+    recorded_repayments: string;
+    repayment_reconciliation_required: boolean;
+  };
+  generated_at: string;
 };
 
 export default async function ReportsPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current member
-  const { data: currentMember } = await supabase
+  const { data: currentMember, error: memberError } = await supabase
     .from("members")
-    .select("id, full_name, role, member_number")
+    .select("id, full_name, role, member_number, status")
     .eq("user_id", user.id)
     .single();
 
-  if (!currentMember) {
-    return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <h1 className="text-2xl font-bold">
-          PSI Reports
-        </h1>
-
-        <p className="mt-3 text-gray-600">
-          Your account is not linked to a PSI member record.
-        </p>
-      </main>
-    );
-  }
-
-  // Contributions
-  const { data: contributionData, error: contributionError } =
-    await supabase
-      .from("contributions")
-      .select("amount, created_at");
-
-  if (contributionError) {
+  if (memberError || !currentMember)
     return (
       <ErrorBox
-        title="Unable to load contributions"
-        message={contributionError.message}
+        title="Account Not Linked"
+        message="Your account is not linked to a PSI member record."
+      />
+    );
+
+  if (currentMember.status !== "active")
+    return (
+      <ErrorBox
+        title="Reports Access Restricted"
+        message="Group reports are available to active PSI members. Contact the Chairperson about your membership status."
+      />
+    );
+
+  const { data, error } = await supabase.rpc("psi_reports_summary");
+  if (error || !data?.group || !data?.personal || !data?.report) {
+    console.error(
+      "REPORTS SUMMARY ERROR:",
+      error ?? "Unexpected summary response",
+    );
+    return (
+      <ErrorBox
+        title="Unable to Load Reports"
+        message="The financial summary could not be loaded. Check that reports-summary.sql completed successfully, then inspect the server terminal. Missing figures are not treated as zero."
       />
     );
   }
 
-  // Repayments
-  const { data: repaymentData, error: repaymentError } =
-    await supabase
-      .from("repayments")
-      .select("amount, created_at");
-
-  if (repaymentError) {
-    return (
-      <ErrorBox
-        title="Unable to load repayments"
-        message={repaymentError.message}
-      />
-    );
-  }
-
-  // Loans
-  const { data: loanData, error: loanError } =
-    await supabase
-      .from("loans")
-      .select(
-        "principal_amount, interest_amount, total_amount, amount_paid, balance, status, created_at"
-      );
-
-  if (loanError) {
-    return (
-      <ErrorBox
-        title="Unable to load loans"
-        message={loanError.message}
-      />
-    );
-  }
-
-  // Members
-  const { data: memberData, error: memberError } =
-    await supabase
-      .from("members")
-      .select("id, full_name, status");
-
-  if (memberError) {
-    return (
-      <ErrorBox
-        title="Unable to load members"
-        message={memberError.message}
-      />
-    );
-  }
-
-  const contributions =
-    (contributionData ?? []) as Contribution[];
-
-  const repayments =
-    (repaymentData ?? []) as Repayment[];
-
-  const loans =
-    (loanData ?? []) as Loan[];
-
-  const members =
-    (memberData ?? []) as Member[];
-
-  // -------------------------
-  // Calculations
-  // -------------------------
-
-  const totalSavings = contributions.reduce(
-    (total, contribution) =>
-      total + Number(contribution.amount),
-    0
+  const summary = data as Summary;
+  const { group, personal, report } = summary;
+  const isOfficer = ["chairperson", "treasurer", "secretary"].includes(
+    currentMember.role,
   );
-
-  const totalRepayments = repayments.reduce(
-    (total, repayment) =>
-      total + Number(repayment.amount),
-    0
-  );
-
-  const totalPrincipal = loans.reduce(
-    (total, loan) =>
-      total + Number(loan.principal_amount),
-    0
-  );
-
-  const totalInterest = loans.reduce(
-    (total, loan) =>
-      total + Number(loan.interest_amount),
-    0
-  );
-
-  const totalLoanValue = loans.reduce(
-    (total, loan) =>
-      total + Number(loan.total_amount),
-    0
-  );
-
-  const totalPaid = loans.reduce(
-    (total, loan) =>
-      total + Number(loan.amount_paid),
-    0
-  );
-
-  const outstandingLoans = loans
-    .filter(
-      (loan) =>
-        !["fully_paid", "rejected"].includes(
-          loan.status
-        )
-    )
-    .reduce(
-      (total, loan) =>
-        total + Number(loan.balance),
-      0
-    );
-
-  const activeLoans = loans.filter(
-    (loan) =>
-      !["fully_paid", "rejected"].includes(
-        loan.status
-      )
-  ).length;
-
-  const activeMembers = members.filter(
-    (member) => member.status === "active"
-  ).length;
-
-  const lendingCapacity = totalSavings * 0.7;
-
-  function formatMoney(amount: number) {
-    return `KSh ${Number(amount).toLocaleString(
-      "en-KE",
-      {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }
-    )}`;
-  }
+  const canRecord = ["chairperson", "treasurer"].includes(currentMember.role);
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="mx-auto max-w-7xl">
-
-        {/* Header */}
         <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <Link
@@ -223,300 +94,272 @@ export default async function ReportsPage() {
             >
               ← Back to Dashboard
             </Link>
-
             <h1 className="mt-3 text-3xl font-bold text-gray-900">
               PSI Reports
             </h1>
-
             <p className="mt-1 text-gray-600">
-              Savings group financial overview
+              Group-wide aggregates and your personal financial position
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Summary generated {formatDate(summary.generated_at)} · Kenya time
             </p>
           </div>
-
           <div className="text-left md:text-right">
-            <p className="text-sm text-gray-500">
-              Logged in as
-            </p>
-
+            <p className="text-sm text-gray-500">Logged in as</p>
             <p className="font-semibold text-gray-900">
               {currentMember.full_name}
             </p>
-
-            <p className="text-sm text-gray-500">
+            <p className="text-sm capitalize text-gray-500">
               {currentMember.role}
             </p>
           </div>
         </header>
 
-        {/* Main statistics */}
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">
             Group Overview
           </h2>
-
+          <p className="mb-4 text-sm text-gray-600">
+            These are actual group-wide totals, shared with all active members.
+            Other members' individual financial records are not returned by the
+            report function.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
             <ReportCard
-              title="Total Savings"
-              value={formatMoney(totalSavings)}
+              title="Confirmed Group Savings"
+              value={money(group.confirmed_savings)}
             />
-
             <ReportCard
-              title="Outstanding Loans"
-              value={formatMoney(outstandingLoans)}
+              title="Group Outstanding Loan Balance"
+              value={money(group.outstanding_loans)}
             />
-
-            <ReportCard
-              title="Total Repayments"
-              value={formatMoney(totalRepayments)}
-            />
-
             <ReportCard
               title="Active Members"
-              value={activeMembers.toString()}
+              value={String(group.active_members)}
             />
-
+            <ReportCard
+              title="Outstanding Loans"
+              value={String(group.outstanding_loan_count)}
+            />
           </div>
         </section>
 
-        {/* Loan statistics */}
         <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">
-            Loan Report
+            Group Loan Report
           </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <ReportCard
-              title="Total Loans"
-              value={loans.length.toString()}
+              title="All Loan Records"
+              value={String(report.total_loan_records)}
             />
-
             <ReportCard
-              title="Active Loans"
-              value={activeLoans.toString()}
+              title="Pending Loans"
+              value={String(report.pending_loans)}
             />
-
             <ReportCard
-              title="Principal Issued"
-              value={formatMoney(totalPrincipal)}
+              title="Approved — Not Yet Disbursed"
+              value={String(report.approved_awaiting_disbursement)}
             />
-
             <ReportCard
-              title="Interest"
-              value={formatMoney(totalInterest)}
+              title="Funded Loans — Including Fully Paid"
+              value={String(report.funded_loan_count)}
             />
-
-            <ReportCard
-              title="Total Loan Value"
-              value={formatMoney(totalLoanValue)}
-            />
-
           </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <ReportCard
+              title="Principal Issued on Funded Loans"
+              value={money(report.principal_issued)}
+            />
+            <ReportCard
+              title="Contracted Interest on Funded Loans"
+              value={money(report.contracted_interest)}
+            />
+            <ReportCard
+              title="Total Repayable on Funded Loans"
+              value={money(report.total_repayable_on_funded_loans)}
+            />
+          </div>
+          <p className="mt-3 text-sm text-gray-500">
+            Funded totals exclude pending, approved-but-undisbursed, and
+            rejected loans. Contracted interest is not the same as interest
+            collected. Existing historical values are reported as stored, not
+            automatically corrected.
+          </p>
         </section>
 
-        {/* Repayment report */}
         <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">
-            Repayment Report
+            Group Repayment Report
           </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <ReportCard
-              title="Total Loan Payments"
-              value={formatMoney(totalPaid)}
+              title="Recorded Repayment Amount"
+              value={money(report.recorded_repayments)}
             />
-
             <ReportCard
-              title="Recorded Repayments"
-              value={repayments.length.toString()}
+              title="Repayment Records"
+              value={String(report.repayment_record_count)}
             />
-
             <ReportCard
-              title="Outstanding Balance"
-              value={formatMoney(outstandingLoans)}
+              title="Paid Amount Stored on Loan Records"
+              value={money(report.paid_on_loan_records)}
             />
-
+            <ReportCard
+              title="Current Outstanding Loan Balance"
+              value={money(group.outstanding_loans)}
+            />
           </div>
+          <p className="mt-3 text-sm text-gray-500">
+            Recorded repayments and loan-level paid amounts are separate checks.
+            Legacy records may need reconciliation; neither value is silently
+            substituted for the other.
+          </p>
+          {report.repayment_reconciliation_required && (
+            <div
+              role="alert"
+              className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+            >
+              Reconciliation needed: repayment records and loan-level paid
+              amounts do not match. Check the original records before changing
+              balances. This warning does not establish which figure is correct.
+            </div>
+          )}
         </section>
 
-        {/* Lending capacity */}
         <section className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
-
           <h2 className="text-lg font-semibold text-blue-900">
-            PSI Lending Capacity
+            My Financial Position
           </h2>
-
-          <div className="mt-4 grid gap-5 sm:grid-cols-3">
-
-            <div>
-              <p className="text-sm text-blue-700">
-                Total Savings
-              </p>
-
-              <p className="mt-1 text-2xl font-bold text-blue-900">
-                {formatMoney(totalSavings)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-blue-700">
-                70% Lending Capacity
-              </p>
-
-              <p className="mt-1 text-2xl font-bold text-blue-900">
-                {formatMoney(lendingCapacity)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-blue-700">
-                Current Outstanding
-              </p>
-
-              <p className="mt-1 text-2xl font-bold text-blue-900">
-                {formatMoney(outstandingLoans)}
-              </p>
-            </div>
-
+          <p className="mt-2 text-sm text-blue-800">
+            Only your own personal figures appear in this section.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ReportCard
+              title="My Confirmed Savings"
+              value={money(personal.confirmed_savings)}
+            />
+            <ReportCard
+              title="My Outstanding Balance"
+              value={money(personal.outstanding_loans)}
+            />
+            <ReportCard
+              title="70% of My Confirmed Savings"
+              value={money(personal.maximum_loan)}
+            />
+            <ReportCard
+              title="My Available Borrowing Limit"
+              value={money(personal.available_loan)}
+            />
           </div>
+          <p className="mt-4 text-sm text-blue-800">
+            Savings are not the group's available cash. Your borrowing limit is
+            calculated individually, after outstanding debt; it is not a promise
+            of cash availability or loan approval.
+          </p>
         </section>
 
-        {/* Navigation */}
         <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-
-          <h2 className="text-lg font-semibold text-gray-900">
-            PSI Records
-          </h2>
-
+          <h2 className="text-lg font-semibold text-gray-900">PSI Records</h2>
           <div className="mt-4 flex flex-wrap gap-3">
-
-            <Link
-              href="/members"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Members
-            </Link>
-
-            <Link
+            {isOfficer && <RecordLink href="/members" label="Members" />}
+            <RecordLink
               href="/contributions"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Contributions
-            </Link>
-
-            <Link
+              label={isOfficer ? "Contributions" : "My Contributions"}
+            />
+            <RecordLink
               href="/loans"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Loans
-            </Link>
-
-            <Link
+              label={isOfficer ? "Loans" : "My Loans"}
+            />
+            <RecordLink
               href="/repayments"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Repayments
-            </Link>
-
-            <Link
+              label={isOfficer ? "Repayments" : "My Repayments"}
+            />
+            <RecordLink
               href="/transactions"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Transactions
-            </Link>
-
+              label={isOfficer ? "Transactions" : "My Transactions"}
+            />
+            <RecordLink href="/chat" label="Group Chat" />
+            {canRecord && (
+              <RecordLink href="/transactions/add" label="Record Transaction" />
+            )}
           </div>
-
         </section>
 
-        {/* Rules */}
         <section className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-5">
-
           <h2 className="font-semibold text-blue-900">
-            PSI Lending Rules
+            Current Prototype Loan Rules
           </h2>
-
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-blue-800">
             <li>
-              Members can borrow up to 70% of their savings.
+              Borrowing capacity is 70% of confirmed savings, less outstanding
+              balances on disbursed loans.
             </li>
-
+            <li>New loans use one-time 10% interest, rounded to cents.</li>
+            <li>Repayment is due 21 days after disbursement.</li>
             <li>
-              Loan repayment period is 21 days.
+              Only an active Chairperson or Treasurer can create, approve, and
+              record financial transactions through this workflow.
             </li>
-
             <li>
-              Standard interest rate is 10%.
-            </li>
-
-            <li>
-              Repayments are applied to interest first.
-            </li>
-
-            <li>
-              After 21 days, the interest doubles.
-            </li>
-
-            <li>
-              Financial transactions must be recorded openly.
+              Approval does not send money; eligibility is checked again when
+              disbursement is recorded.
             </li>
           </ul>
-
+          <p className="mt-3 text-sm text-blue-800">
+            Separate interest-first repayment allocations and automatic
+            overdue-interest doubling are not implemented. This report does not
+            apply penalties or modify historical financial records.
+          </p>
         </section>
-
       </div>
     </main>
   );
 }
 
-function ReportCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function money(value: string | number) {
+  return `KSh ${Number(value).toLocaleString("en-KE", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+function formatDate(value: string) {
+  return new Date(value).toLocaleString("en-KE", {
+    timeZone: "Africa/Nairobi",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function ReportCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-gray-500">
-        {title}
-      </p>
-
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-      </p>
+      <p className="text-sm text-gray-500">{title}</p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }
-
-function ErrorBox({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
+function RecordLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+    >
+      {label}
+    </Link>
+  );
+}
+function ErrorBox({ title, message }: { title: string; message: string }) {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
-          <h1 className="font-semibold text-red-800">
-            {title}
-          </h1>
-
-          <p className="mt-2 text-sm text-red-700">
-            {message}
-          </p>
-
-          <Link
-            href="/dashboard"
-            className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            Back to Dashboard
-          </Link>
-        </div>
+      <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-red-50 p-5">
+        <h1 className="font-semibold text-red-800">{title}</h1>
+        <p className="mt-2 text-sm text-red-700">{message}</p>
+        <Link
+          href="/dashboard"
+          className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+        >
+          Back to Dashboard
+        </Link>
       </div>
     </main>
   );
