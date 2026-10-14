@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import LogoutButton from "@/app/components/logout-button";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <a className="psi-skip-link" href="#psi-content">
+        <a
+          className="psi-skip-link"
+          href="#psi-content"
+        >
           Skip to content
         </a>
 
@@ -55,9 +59,13 @@ export default function RootLayout({
               </span>
             </Link>
 
-            <span className="psi-header-note">
-              Community · Savings · Connection
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="psi-header-note">
+                Community · Savings · Connection
+              </span>
+
+              <LogoutButton />
+            </div>
           </div>
         </header>
 
