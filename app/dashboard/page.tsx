@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -21,26 +21,6 @@ type Summary = {
   generated_at: string;
 };
 
-const gridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-  gap: "20px",
-  marginTop: "20px",
-};
-const panelStyle: CSSProperties = {
-  background: "white",
-  padding: "25px",
-  borderRadius: "12px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-};
-const pageStyle: CSSProperties = {
-  minHeight: "100vh",
-  padding: "24px",
-  background: "#f5f7fa",
-  fontFamily: "Arial, sans-serif",
-  color: "#222",
-};
-
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -56,12 +36,10 @@ export default async function DashboardPage() {
 
   if (memberError || !member)
     return (
-      <main style={pageStyle}>
-        <div style={{ ...panelStyle, maxWidth: "700px", margin: "0 auto" }}>
+      <main className={styles.page}>
+        <div className={styles.card}>
           <h1>PSI Dashboard</h1>
-          <p style={{ color: "#666" }}>
-            Your login is not linked to a PSI member record.
-          </p>
+          <p>Your login is not linked to a PSI member record.</p>
           <NavLink href="/login" label="Back to Login" />
         </div>
       </main>
@@ -69,17 +47,17 @@ export default async function DashboardPage() {
 
   if (member.status !== "active")
     return (
-      <main style={pageStyle}>
-        <div style={{ ...panelStyle, maxWidth: "700px", margin: "0 auto" }}>
+      <main className={styles.page}>
+        <div className={styles.card}>
           <h1>PSI Dashboard</h1>
           <p>
             Welcome, <strong>{member.full_name}</strong>.
           </p>
-          <p style={{ color: "#666" }}>
+          <p>
             Your membership is {member.status}. Group Overview and Group Chat
             require active membership. Contact the Chairperson for assistance.
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <div>
             <NavLink href="/contributions" label="My Contributions" />
             <NavLink href="/loans" label="My Loans" />
             <NavLink href="/repayments" label="My Repayments" />
@@ -107,54 +85,24 @@ export default async function DashboardPage() {
     );
 
   return (
-    <main style={pageStyle}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "20px",
-            marginBottom: "25px",
-            flexWrap: "wrap",
-          }}
-        >
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
           <div>
-            <h1 style={{ marginBottom: "5px" }}>PSI Savings Group</h1>
-            <p style={{ margin: 0 }}>
+            <p className={styles.eyebrow}>PSI · SAVINGS GROUP</p>
+            <h1>Your dashboard</h1>
+            <p>
               Welcome, <strong>{member.full_name}</strong>
             </p>
           </div>
-          <div
-            style={{
-              textAlign: "right",
-              background: "white",
-              padding: "12px 18px",
-              borderRadius: "10px",
-              border: "1px solid #ddd",
-            }}
-          >
-            <strong>{formatRole(role)}</strong>
+          <div>
+            <strong className={styles.role}>{formatRole(role)}</strong>
             <br />
-            <span style={{ color: "#666", fontSize: "14px" }}>
-              {member.member_number || "No member number"}
-            </span>
+            <span>{member.member_number || "No member number"}</span>
           </div>
         </header>
 
-        <nav
-          aria-label="Member navigation"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            marginBottom: "30px",
-            padding: "15px",
-            background: "white",
-            borderRadius: "12px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          }}
-        >
+        <nav aria-label="Member navigation">
           <NavLink href="/dashboard" label="Dashboard" active />
           {isOfficer && <NavLink href="/members" label="Members" />}
           <NavLink
@@ -174,24 +122,9 @@ export default async function DashboardPage() {
         </nav>
 
         {isChairperson && (
-          <section
-            style={{
-              marginBottom: "30px",
-              padding: "18px 20px",
-              background: "#eef6ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: "12px",
-            }}
-          >
+          <section className={styles.notice}>
             <strong>Chairperson Access</strong>
-            <p
-              style={{
-                marginTop: "6px",
-                marginBottom: 0,
-                color: "#475569",
-                fontSize: "14px",
-              }}
-            >
+            <p>
               Manage member records and the permitted group financial workflow.
               Treasurer access covers financial recording; Group Chat is shared
               by all active members.
@@ -203,12 +136,12 @@ export default async function DashboardPage() {
           <>
             <section>
               <h2>Group Overview</h2>
-              <p style={{ color: "#666", fontSize: "14px" }}>
+              <p>
                 Group-wide totals shared with all active members. Individual
                 financial records remain controlled by the existing database
                 permissions.
               </p>
-              <div style={gridStyle}>
+              <div className={styles.grid}>
                 <DashboardCard
                   title="Total Confirmed Group Savings"
                   value={money(summary.group.confirmed_savings)}
@@ -226,18 +159,16 @@ export default async function DashboardPage() {
                   value={String(summary.group.outstanding_loan_count)}
                 />
               </div>
-              <p style={{ marginTop: "15px", color: "#666", fontSize: "13px" }}>
+              <p>
                 Savings are member contributions, not available cash. Pending
                 and approved loans are not counted as money already lent.
                 Updated {timestamp(summary.generated_at)}.
               </p>
             </section>
-            <section style={{ marginTop: "40px" }}>
+            <section>
               <h2>My Financial Position</h2>
-              <p style={{ color: "#666", fontSize: "14px" }}>
-                These figures belong to your account only.
-              </p>
-              <div style={gridStyle}>
+              <p>These figures belong to your account only.</p>
+              <div className={styles.grid}>
                 <DashboardCard
                   title="My Confirmed Savings"
                   value={money(summary.personal.confirmed_savings)}
@@ -258,25 +189,20 @@ export default async function DashboardPage() {
             </section>
           </>
         ) : (
-          <section
-            role="alert"
-            style={{ ...panelStyle, border: "1px solid #fca5a5" }}
-          >
+          <section role="alert" className={styles.error}>
             <h2>Financial Summary Unavailable</h2>
-            <p style={{ color: "#666" }}>
+            <p>
               The summary could not be loaded. Check that dashboard-summary.sql
               completed successfully and inspect the server terminal. Missing
               figures are not shown as zero.
             </p>
-            <p style={{ color: "#666" }}>
-              You can still use the navigation and Group Chat.
-            </p>
+            <p>You can still use the navigation and Group Chat.</p>
           </section>
         )}
 
-        <section style={{ marginTop: "40px" }}>
+        <section>
           <h2>Quick Actions</h2>
-          <div style={gridStyle}>
+          <div className={styles.grid}>
             <ActionCard
               href="/chat"
               title="Group Chat"
@@ -328,9 +254,9 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section style={{ ...panelStyle, marginTop: "40px" }}>
+        <section className={styles.rules}>
           <h2>PSI Loan Rules</h2>
-          <ul style={{ lineHeight: 1.8 }}>
+          <ul>
             <li>
               Borrowing capacity is 70% of confirmed savings, less outstanding
               balances on disbursed loans.
@@ -346,7 +272,7 @@ export default async function DashboardPage() {
               eligibility is checked again at disbursement.
             </li>
           </ul>
-          <p style={{ color: "#666", fontSize: "14px" }}>
+          <p>
             Separate interest-first repayment allocations and automatic
             overdue-interest doubling are not implemented in this prototype.
           </p>
@@ -386,16 +312,8 @@ function NavLink({
   return (
     <Link
       href={href}
-      style={{
-        display: "inline-block",
-        padding: "10px 15px",
-        borderRadius: "8px",
-        background: active ? "#222" : "#f1f3f5",
-        color: active ? "white" : "#222",
-        textDecoration: "none",
-        fontSize: "14px",
-        fontWeight: 600,
-      }}
+      className={active ? styles.navActive : styles.navLink}
+      aria-current={active ? "page" : undefined}
     >
       {label}
     </Link>
@@ -411,31 +329,20 @@ function ActionCard({
   description: string;
 }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "block",
-        padding: "20px",
-        background: "white",
-        borderRadius: "12px",
-        border: "1px solid #ddd",
-        textDecoration: "none",
-        color: "#222",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-      }}
-    >
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
-      <p style={{ marginBottom: 0, color: "#666", fontSize: "14px" }}>
-        {description}
-      </p>
+    <Link href={href} className={styles.action}>
+      <h3>
+        {title}
+        <span aria-hidden="true">↗</span>
+      </h3>
+      <p>{description}</p>
     </Link>
   );
 }
 function DashboardCard({ title, value }: { title: string; value: string }) {
   return (
-    <div style={panelStyle}>
-      <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>{title}</p>
-      <h2 style={{ marginTop: "10px" }}>{value}</h2>
+    <div className={styles.card}>
+      <p>{title}</p>
+      <p className={styles.value}>{value}</p>
     </div>
   );
 }
