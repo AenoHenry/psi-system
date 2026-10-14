@@ -85,9 +85,11 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="psi-login-note">
-          Savings, financial records, and group conversations.
+          Save let's grow together.
           <br />
-          All in one place.
+          Dev Aeno Henry
+          <br />
+          Copyright 2026
         </p>
       </div>
     </main>
