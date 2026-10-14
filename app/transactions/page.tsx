@@ -28,10 +28,7 @@ export default async function TransactionsPage() {
   }
 
   // Get the signed-in member.
-  const {
-    data: currentMember,
-    error: currentMemberError,
-  } = await supabase
+  const { data: currentMember, error: currentMemberError } = await supabase
     .from("members")
     .select("id, member_number, full_name, role, status")
     .eq("user_id", user.id)
@@ -48,20 +45,13 @@ export default async function TransactionsPage() {
 
   const canRecord =
     currentMember.status === "active" &&
-    ["chairperson", "treasurer"].includes(
-      currentMember.role
-    );
+    ["chairperson", "treasurer"].includes(currentMember.role);
 
   // Read using the signed-in session.
   // Database policies determine which records are visible.
-  const {
-    data: transactionData,
-    error: transactionError,
-  } = await supabase
+  const { data: transactionData, error: transactionError } = await supabase
     .from("transactions")
-    .select(
-      "id, member_id, transaction_type, amount, transaction_date"
-    )
+    .select("id, member_id, transaction_type, amount, transaction_date")
     .order("transaction_date", {
       ascending: false,
     });
@@ -75,54 +65,37 @@ export default async function TransactionsPage() {
     );
   }
 
-  const {
-    data: memberData,
-    error: memberError,
-  } = await supabase
+  const { data: memberData, error: memberError } = await supabase
     .from("members")
     .select("id, member_number, full_name");
 
   if (memberError) {
     return (
-      <ErrorBox
-        title="Unable to Load Members"
-        message={memberError.message}
-      />
+      <ErrorBox title="Unable to Load Members" message={memberError.message} />
     );
   }
 
-  const transactions =
-    (transactionData ?? []) as Transaction[];
+  const transactions = (transactionData ?? []) as Transaction[];
 
-  const members =
-    (memberData ?? []) as Member[];
+  const members = (memberData ?? []) as Member[];
 
   const memberLookup = new Map(
-    members.map((member) => [
-      member.id,
-      member,
-    ] as const)
+    members.map((member) => [member.id, member] as const),
   );
 
-  const transactionRows = transactions.map(
-    (transaction) => {
-      const member = transaction.member_id
-        ? memberLookup.get(transaction.member_id)
-        : undefined;
+  const transactionRows = transactions.map((transaction) => {
+    const member = transaction.member_id
+      ? memberLookup.get(transaction.member_id)
+      : undefined;
 
-      return {
-        ...transaction,
-        member_number: member?.member_number ?? "—",
-        member_name:
-          member?.full_name ??
-          (
-            transaction.member_id
-              ? "Member unavailable"
-              : "Group / System"
-          ),
-      };
-    }
-  );
+    return {
+      ...transaction,
+      member_number: member?.member_number ?? "—",
+      member_name:
+        member?.full_name ??
+        (transaction.member_id ? "Member unavailable" : "Group / System"),
+    };
+  });
 
   // These summaries cover the records loaded on this page.
   // Total Recorded includes both inflows and outflows;
@@ -130,30 +103,17 @@ export default async function TransactionsPage() {
   const totalTransactions = transactions.length;
 
   const totalAmount = transactions.reduce(
-    (total, transaction) =>
-      total + Number(transaction.amount),
-    0
+    (total, transaction) => total + Number(transaction.amount),
+    0,
   );
 
   const moneyIn = transactions
-    .filter((transaction) =>
-      isMoneyIn(transaction.transaction_type)
-    )
-    .reduce(
-      (total, transaction) =>
-        total + Number(transaction.amount),
-      0
-    );
+    .filter((transaction) => isMoneyIn(transaction.transaction_type))
+    .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
   const moneyOut = transactions
-    .filter((transaction) =>
-      isMoneyOut(transaction.transaction_type)
-    )
-    .reduce(
-      (total, transaction) =>
-        total + Number(transaction.amount),
-      0
-    );
+    .filter((transaction) => isMoneyOut(transaction.transaction_type))
+    .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
@@ -179,9 +139,7 @@ export default async function TransactionsPage() {
 
           <div className="flex flex-col gap-4 md:items-end">
             <div className="text-left md:text-right">
-              <p className="text-sm text-gray-500">
-                Logged in as
-              </p>
+              <p className="text-sm text-gray-500">Logged in as</p>
 
               <p className="font-semibold text-gray-900">
                 {currentMember.full_name}
@@ -195,7 +153,7 @@ export default async function TransactionsPage() {
             {canRecord && (
               <Link
                 href="/transactions/add"
-                className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
               >
                 + Record Transaction
               </Link>
@@ -215,15 +173,9 @@ export default async function TransactionsPage() {
             value={formatMoney(totalAmount)}
           />
 
-          <SummaryCard
-            title="Money In"
-            value={formatMoney(moneyIn)}
-          />
+          <SummaryCard title="Money In" value={formatMoney(moneyIn)} />
 
-          <SummaryCard
-            title="Money Out"
-            value={formatMoney(moneyOut)}
-          />
+          <SummaryCard title="Money Out" value={formatMoney(moneyOut)} />
         </section>
 
         {/* Transaction history */}
@@ -234,8 +186,8 @@ export default async function TransactionsPage() {
             </h2>
 
             <p className="text-sm text-gray-500">
-              Records are sorted by transaction date.
-              Dates are shown in Kenya time.
+              Records are sorted by transaction date. Dates are shown in Kenya
+              time.
             </p>
           </div>
 
@@ -264,14 +216,9 @@ export default async function TransactionsPage() {
 
                 <tbody className="divide-y">
                   {transactionRows.map((transaction) => (
-                    <tr
-                      key={transaction.id}
-                      className="hover:bg-gray-50"
-                    >
+                    <tr key={transaction.id} className="hover:bg-gray-50">
                       <td className="px-5 py-4 text-sm text-gray-700">
-                        {formatDate(
-                          transaction.transaction_date
-                        )}
+                        {formatDate(transaction.transaction_date)}
                       </td>
 
                       <td className="px-5 py-4">
@@ -287,15 +234,11 @@ export default async function TransactionsPage() {
                       <td className="px-5 py-4">
                         <span
                           className={
-                            "rounded-full px-3 py-1 text-xs font-medium " +
-                            transactionClass(
-                              transaction.transaction_type
-                            )
+                            "rounded-full px-3 py-1 text-sm font-medium " +
+                            transactionClass(transaction.transaction_type)
                           }
                         >
-                          {formatTransactionType(
-                            transaction.transaction_type
-                          )}
+                          {formatTransactionType(transaction.transaction_type)}
                         </span>
                       </td>
 
@@ -318,27 +261,23 @@ export default async function TransactionsPage() {
 
         {/* Explanation */}
         <section className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-5">
-          <h2 className="font-semibold text-blue-900">
-            PSI Financial Records
-          </h2>
+          <h2 className="font-semibold text-blue-900">PSI Financial Records</h2>
 
           <p className="mt-2 text-sm text-blue-800">
-            Contributions and loan repayments are money in.
-            Loan disbursements and group expenses are money out.
-            Separate interest and penalty entries are also
-            classified as money in.
+            Contributions and loan repayments are money in. Loan disbursements
+            and group expenses are money out. Separate interest and penalty
+            entries are also classified as money in.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            Summary figures cover the records loaded above.
-            Total Recorded adds inflows and outflows together;
-            it is not the group&apos;s available balance.
+            Summary figures cover the records loaded above. Total Recorded adds
+            inflows and outflows together; it is not the group&apos;s available
+            balance.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            Only active Chairpersons and Treasurers can
-            record transactions. Access is also checked by
-            the recording API and database function.
+            Only active Chairpersons and Treasurers can record transactions.
+            Access is also checked by the recording API and database function.
           </p>
         </section>
       </div>
@@ -347,19 +286,13 @@ export default async function TransactionsPage() {
 }
 
 function isMoneyIn(type: string | null) {
-  return [
-    "contribution",
-    "loan_repayment",
-    "interest",
-    "penalty",
-  ].includes(type ?? "");
+  return ["contribution", "loan_repayment", "interest", "penalty"].includes(
+    type ?? "",
+  );
 }
 
 function isMoneyOut(type: string | null) {
-  return [
-    "loan_disbursement",
-    "expense",
-  ].includes(type ?? "");
+  return ["loan_disbursement", "expense"].includes(type ?? "");
 }
 
 function transactionClass(type: string | null) {
@@ -408,48 +341,28 @@ function formatTransactionType(type: string | null) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function SummaryCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-gray-500">
-        {title}
-      </p>
+      <p className="text-sm text-gray-500">{title}</p>
 
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }
 
-function ErrorBox({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
+function ErrorBox({ title, message }: { title: string; message: string }) {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
         <div className="rounded-xl border border-red-200 bg-red-50 p-5">
-          <h1 className="font-semibold text-red-800">
-            {title}
-          </h1>
+          <h1 className="font-semibold text-red-800">{title}</h1>
 
-          <p className="mt-2 text-sm text-red-700">
-            {message}
-          </p>
+          <p className="mt-2 text-sm text-red-700">{message}</p>
 
           <Link
             href="/dashboard"
-            className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+            className="mt-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
           >
             Back to Dashboard
           </Link>

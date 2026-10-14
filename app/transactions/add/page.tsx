@@ -12,12 +12,11 @@ export default async function AddTransactionPage() {
 
   if (!user) redirect("/login");
 
-  const { data: currentMember, error: currentMemberError } =
-    await supabase
-      .from("members")
-      .select("id, full_name, role, status")
-      .eq("user_id", user.id)
-      .single();
+  const { data: currentMember, error: currentMemberError } = await supabase
+    .from("members")
+    .select("id, full_name, role, status")
+    .eq("user_id", user.id)
+    .single();
 
   if (
     currentMemberError ||
@@ -33,8 +32,8 @@ export default async function AddTransactionPage() {
           </h1>
 
           <p className="mt-3 text-gray-600">
-            Only an active Chairperson or Treasurer can
-            record financial transactions.
+            Only an active Chairperson or Treasurer can record financial
+            transactions.
           </p>
 
           <Link
@@ -56,15 +55,8 @@ export default async function AddTransactionPage() {
 
     supabase
       .from("loans")
-      .select(
-        "id, member_id, principal_amount, total_amount, balance, status"
-      )
-      .in("status", [
-        "approved",
-        "disbursed",
-        "partially_paid",
-        "overdue",
-      ])
+      .select("id, member_id, principal_amount, total_amount, balance, status")
+      .in("status", ["approved", "disbursed", "partially_paid", "overdue"])
       .order("created_at", { ascending: false }),
   ]);
 
@@ -82,8 +74,8 @@ export default async function AddTransactionPage() {
           </h1>
 
           <p className="mt-3 text-gray-600">
-            The members or loans could not be loaded.
-            Check the server terminal for details.
+            The members or loans could not be loaded. Check the server terminal
+            for details.
           </p>
 
           <Link

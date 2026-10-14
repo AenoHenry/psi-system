@@ -1,26 +1,58 @@
-@import "tailwindcss";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Link from "next/link";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+export const metadata: Metadata = {
+  title: "PSI Savings Group",
+  description:
+    "Member savings, loan records, and group conversations for PSI Savings Group.",
+};
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <a className="psi-skip-link" href="#psi-content">
+          Skip to content
+        </a>
+        <header className="psi-site-header">
+          <div className="psi-site-header-inner">
+            <Link
+              href="/"
+              className="psi-site-brand"
+              aria-label="PSI Savings Group home"
+            >
+              <span className="psi-brand-mark" aria-hidden="true">
+                PSI
+              </span>
+              <span>
+                <strong>PSI Savings Group</strong>
+                <span className="psi-brand-subtitle">Growing together</span>
+              </span>
+            </Link>
+            <span className="psi-header-note">
+              Community · Savings · Connection
+            </span>
+          </div>
+        </header>
+        <div id="psi-content" tabIndex={-1} className="psi-content">
+          {children}
+        </div>
+      </body>
+    </html>
+  );
 }

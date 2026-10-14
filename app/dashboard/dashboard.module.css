@@ -1,12 +1,12 @@
 .page {
-  --wine: #6b1839;
-  --wine-dark: #50112b;
-  --gold: #d8bc8a;
-  --canvas: #fcfaf7;
+  --wine: #0064e0;
+  --wine-dark: #004ca8;
+  --gold: #d62976;
+  --canvas: #fafafa;
   --surface: #fff;
-  --text: #292524;
-  --muted: #6b625e;
-  --border: #e7ded7;
+  --text: #262626;
+  --muted: #737373;
+  --border: #dbdbdb;
   min-height: 100vh;
   padding: 32px 24px 48px;
   background: var(--canvas);
@@ -67,7 +67,7 @@
 }
 .header > div:last-child {
   text-align: right;
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid #dbdbdb;
   padding: 8px 0 8px 16px;
 }
 .header > div:last-child span {
@@ -113,7 +113,7 @@
   color: var(--muted);
 }
 .navLink:hover {
-  background: #f7edf1;
+  background: #f0f6ff;
   color: var(--wine);
 }
 .navActive {
@@ -151,7 +151,7 @@
 }
 .value {
   margin-top: 12px !important;
-  color: var(--wine);
+  color: var(--text);
   font-size: clamp(24px, 2.5vw, 28px);
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -164,7 +164,7 @@
 }
 .notice {
   border-left: 4px solid var(--gold);
-  background: #f5ede0;
+  background: #fff;
   border-radius: 8px;
   padding: 16px 24px;
 }
@@ -187,7 +187,7 @@
 }
 .action:hover {
   border-color: var(--wine);
-  background: #fdf8fa;
+  background: #f7faff;
 }
 .action h3 {
   display: flex;
@@ -206,11 +206,12 @@
 .rules {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-top: 3px solid var(--gold);
+  border-top: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
 }
 .rules ul {
+  list-style-type: disc;
   padding-left: 24px;
   margin: 16px 0;
 }
@@ -277,4 +278,33 @@
   .action {
     min-height: 120px;
   }
+}
+
+/* The gradient is a brand accent, never a financial status. */
+.notice {
+  position: relative;
+  border: 1px solid var(--border);
+  border-left: 0;
+  overflow: hidden;
+}
+.notice::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, #833ab4, #e1306c, #f77737);
+}
+.notice strong,
+.role {
+  color: var(--text);
+}
+.eyebrow {
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.page > .card h1 + p {
+  margin-top: 16px;
+}
+.page > .card p + p {
+  margin-top: 8px;
 }

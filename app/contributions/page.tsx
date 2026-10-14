@@ -30,10 +30,7 @@ export default async function ContributionsPage() {
     redirect("/login");
   }
 
-  const {
-    data: currentMember,
-    error: currentMemberError,
-  } = await supabase
+  const { data: currentMember, error: currentMemberError } = await supabase
     .from("members")
     .select("id, member_number, full_name, role, status")
     .eq("user_id", user.id)
@@ -50,19 +47,14 @@ export default async function ContributionsPage() {
 
   const canRecord =
     currentMember.status === "active" &&
-    ["chairperson", "treasurer"].includes(
-      currentMember.role
-    );
+    ["chairperson", "treasurer"].includes(currentMember.role);
 
   // Read using the signed-in session.
   // Database policies determine which records are visible.
-  const {
-    data: contributionData,
-    error: contributionError,
-  } = await supabase
+  const { data: contributionData, error: contributionError } = await supabase
     .from("contributions")
     .select(
-      "id, member_id, amount, contribution_date, payment_method, mpesa_reference, notes, verification_status"
+      "id, member_id, amount, contribution_date, payment_method, mpesa_reference, notes, verification_status",
     )
     .order("contribution_date", {
       ascending: false,
@@ -77,72 +69,47 @@ export default async function ContributionsPage() {
     );
   }
 
-  const {
-    data: memberData,
-    error: memberError,
-  } = await supabase
+  const { data: memberData, error: memberError } = await supabase
     .from("members")
     .select("id, member_number, full_name");
 
   if (memberError) {
     return (
-      <ErrorBox
-        title="Unable to Load Members"
-        message={memberError.message}
-      />
+      <ErrorBox title="Unable to Load Members" message={memberError.message} />
     );
   }
 
-  const contributions =
-    (contributionData ?? []) as Contribution[];
+  const contributions = (contributionData ?? []) as Contribution[];
 
-  const members =
-    (memberData ?? []) as Member[];
+  const members = (memberData ?? []) as Member[];
 
   const memberLookup = new Map(
-    members.map((member) => [
-      member.id,
-      member,
-    ] as const)
+    members.map((member) => [member.id, member] as const),
   );
 
-  const contributionRows = contributions.map(
-    (contribution) => {
-      const member = memberLookup.get(
-        contribution.member_id
-      );
+  const contributionRows = contributions.map((contribution) => {
+    const member = memberLookup.get(contribution.member_id);
 
-      return {
-        ...contribution,
-        member_number: member?.member_number ?? "—",
-        member_name:
-          member?.full_name ?? "Member unavailable",
-      };
-    }
-  );
+    return {
+      ...contribution,
+      member_number: member?.member_number ?? "—",
+      member_name: member?.full_name ?? "Member unavailable",
+    };
+  });
 
   // Only confirmed contributions count as savings.
   const confirmedContributions = contributions.filter(
-    (contribution) =>
-      contribution.verification_status === "confirmed"
+    (contribution) => contribution.verification_status === "confirmed",
   );
 
   const confirmedSavings = confirmedContributions.reduce(
-    (total, contribution) =>
-      total + Number(contribution.amount),
-    0
+    (total, contribution) => total + Number(contribution.amount),
+    0,
   );
 
   const myConfirmedSavings = confirmedContributions
-    .filter(
-      (contribution) =>
-        contribution.member_id === currentMember.id
-    )
-    .reduce(
-      (total, contribution) =>
-        total + Number(contribution.amount),
-      0
-    );
+    .filter((contribution) => contribution.member_id === currentMember.id)
+    .reduce((total, contribution) => total + Number(contribution.amount), 0);
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
@@ -168,9 +135,7 @@ export default async function ContributionsPage() {
 
           <div className="flex flex-col gap-4 md:items-end">
             <div className="text-left md:text-right">
-              <p className="text-sm text-gray-500">
-                Logged in as
-              </p>
+              <p className="text-sm text-gray-500">Logged in as</p>
 
               <p className="font-semibold text-gray-900">
                 {currentMember.full_name}
@@ -184,7 +149,7 @@ export default async function ContributionsPage() {
             {canRecord && (
               <Link
                 href="/transactions/add"
-                className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
               >
                 + Record Contribution
               </Link>
@@ -218,8 +183,8 @@ export default async function ContributionsPage() {
             </h2>
 
             <p className="text-sm text-gray-500">
-              Dates are shown in Kenya time. Pending and
-              rejected contributions do not count as savings.
+              Dates are shown in Kenya time. Pending and rejected contributions
+              do not count as savings.
             </p>
           </div>
 
@@ -264,14 +229,9 @@ export default async function ContributionsPage() {
 
                 <tbody className="divide-y">
                   {contributionRows.map((contribution) => (
-                    <tr
-                      key={contribution.id}
-                      className="hover:bg-gray-50"
-                    >
+                    <tr key={contribution.id} className="hover:bg-gray-50">
                       <td className="px-5 py-4 text-sm text-gray-700">
-                        {formatDate(
-                          contribution.contribution_date
-                        )}
+                        {formatDate(contribution.contribution_date)}
                       </td>
 
                       <td className="px-5 py-4 font-semibold text-gray-900">
@@ -287,9 +247,7 @@ export default async function ContributionsPage() {
                       </td>
 
                       <td className="px-5 py-4 text-sm text-gray-700">
-                        {formatPaymentMethod(
-                          contribution.payment_method
-                        )}
+                        {formatPaymentMethod(contribution.payment_method)}
                       </td>
 
                       <td className="px-5 py-4 text-sm text-gray-700">
@@ -299,10 +257,8 @@ export default async function ContributionsPage() {
                       <td className="px-5 py-4">
                         <span
                           className={
-                            "rounded-full px-3 py-1 text-xs font-medium capitalize " +
-                            statusClass(
-                              contribution.verification_status
-                            )
+                            "rounded-full px-3 py-1 text-sm font-medium capitalize " +
+                            statusClass(contribution.verification_status)
                           }
                         >
                           {contribution.verification_status}
@@ -320,8 +276,7 @@ export default async function ContributionsPage() {
 
             {contributionRows.length === 0 && (
               <div className="p-10 text-center text-sm text-gray-500">
-                No contribution records are available to
-                your account.
+                No contribution records are available to your account.
               </div>
             )}
           </div>
@@ -334,28 +289,24 @@ export default async function ContributionsPage() {
           </h2>
 
           <p className="mt-2 text-sm text-blue-800">
-            Confirmed contributions form the savings used
-            to calculate borrowing capacity. Pending and
-            rejected contributions are excluded.
+            Confirmed contributions form the savings used to calculate borrowing
+            capacity. Pending and rejected contributions are excluded.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            To record a contribution, use Record Transaction
-            and select Member Contribution. Only an active
-            Chairperson or Treasurer can record it.
+            To record a contribution, use Record Transaction and select Member
+            Contribution. Only an active Chairperson or Treasurer can record it.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            The shared recording function saves the
-            contribution and its matching transaction
-            together. Do not enter the same payment again
+            The shared recording function saves the contribution and its
+            matching transaction together. Do not enter the same payment again
             as a separate transaction.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            Summary figures cover the records loaded on this
-            page. The database borrowing-limit calculation
-            checks all applicable records.
+            Summary figures cover the records loaded on this page. The database
+            borrowing-limit calculation checks all applicable records.
           </p>
         </section>
       </div>
@@ -406,47 +357,27 @@ function statusClass(status: string) {
   return "bg-yellow-100 text-yellow-700";
 }
 
-function SummaryCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-gray-500">
-        {title}
-      </p>
+      <p className="text-sm text-gray-500">{title}</p>
 
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }
 
-function ErrorBox({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
+function ErrorBox({ title, message }: { title: string; message: string }) {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-2xl font-bold text-red-800">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-bold text-red-800">{title}</h1>
 
-        <p className="mt-3 text-red-700">
-          {message}
-        </p>
+        <p className="mt-3 text-red-700">{message}</p>
 
         <Link
           href="/dashboard"
-          className="mt-5 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+          className="mt-5 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
         >
           Back to Dashboard
         </Link>

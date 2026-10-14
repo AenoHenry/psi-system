@@ -21,7 +21,7 @@ type Submission = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700 disabled:bg-gray-100";
+  "w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 disabled:bg-gray-100";
 const labelClass = "mb-2 block text-sm font-medium text-gray-700";
 
 function money(value: number | string) {
@@ -192,7 +192,7 @@ export default function LoanManagement({
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
+          className="mt-6 rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
         >
           {loading
             ? "Creating…"
@@ -232,7 +232,7 @@ export default function LoanManagement({
         </p>
         <Link
           href="/transactions/add"
-          className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white"
+          className="mt-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
         >
           Record Transaction
         </Link>
@@ -316,7 +316,7 @@ function LoanReview({ loan }: { loan: PendingLoan }) {
               type="button"
               disabled={loading}
               onClick={() => decide(retryDecision)}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               {loading
                 ? "Saving…"

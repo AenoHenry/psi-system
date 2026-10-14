@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -21,15 +16,11 @@ export default function ActivatePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [invitedUserId, setInvitedUserId] = useState<
-    string | null
-  >(null);
+  const [invitedUserId, setInvitedUserId] = useState<string | null>(null);
 
   // Avoid consuming the same invitation twice when React
   // runs effects twice during development.
-  const verificationRef = useRef<Promise<string> | null>(
-    null
-  );
+  const verificationRef = useRef<Promise<string> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +34,7 @@ export default function ActivatePage() {
         if (!tokenHash || type !== "invite") {
           throw new Error(
             "Open this page using the invitation email. " +
-              "Opening /activate directly will not activate an account."
+              "Opening /activate directly will not activate an account.",
           );
         }
 
@@ -59,7 +50,7 @@ export default function ActivatePage() {
           throw new Error(
             "This invitation could not be verified. " +
               "It may be expired or already used. " +
-              "Ask the chairperson for help."
+              "Ask the chairperson for help.",
           );
         }
 
@@ -70,7 +61,7 @@ export default function ActivatePage() {
         window.history.replaceState(
           window.history.state,
           "",
-          `${url.pathname}${url.search}${url.hash}`
+          `${url.pathname}${url.search}${url.hash}`,
         );
 
         return data.user.id;
@@ -90,7 +81,7 @@ export default function ActivatePage() {
         setError(
           err instanceof Error
             ? err.message
-            : "Unable to verify this invitation."
+            : "Unable to verify this invitation.",
         );
 
         setLoading(false);
@@ -101,9 +92,7 @@ export default function ActivatePage() {
     };
   }, [supabase]);
 
-  async function handleActivate(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleActivate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (saving || !invitedUserId) return;
@@ -129,24 +118,19 @@ export default function ActivatePage() {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (
-        userError ||
-        !user ||
-        user.id !== invitedUserId
-      ) {
+      if (userError || !user || user.id !== invitedUserId) {
         setInvitedUserId(null);
 
         throw new Error(
           "Your login session changed or expired. " +
             "For safety, no password was changed. " +
-            "Ask the chairperson for help."
+            "Ask the chairperson for help.",
         );
       }
 
-      const { error: updateError } =
-        await supabase.auth.updateUser({
-          password,
-        });
+      const { error: updateError } = await supabase.auth.updateUser({
+        password,
+      });
 
       if (updateError) {
         throw updateError;
@@ -157,9 +141,7 @@ export default function ActivatePage() {
       setSuccess(true);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to set your password."
+        err instanceof Error ? err.message : "Unable to set your password.",
       );
     } finally {
       setSaving(false);
@@ -169,16 +151,14 @@ export default function ActivatePage() {
   const inputClassName =
     "w-full rounded-lg border border-gray-300 bg-white " +
     "px-4 py-3 text-gray-900 outline-none " +
-    "focus:border-gray-700 focus:ring-1 focus:ring-gray-700 " +
+    "focus:border-blue-700 focus:ring-1 focus:ring-blue-700 " +
     "disabled:bg-gray-100";
 
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-gray-600">
-            Checking your invitation…
-          </p>
+          <p className="text-gray-600">Checking your invitation…</p>
         </div>
       </main>
     );
@@ -192,9 +172,7 @@ export default function ActivatePage() {
             Password Set Successfully
           </h1>
 
-          <p className="mt-3 text-gray-600">
-            Your PSI login is ready.
-          </p>
+          <p className="mt-3 text-gray-600">Your PSI login is ready.</p>
 
           <button
             type="button"
@@ -202,7 +180,7 @@ export default function ActivatePage() {
               router.replace("/dashboard");
               router.refresh();
             }}
-            className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 font-semibold text-white hover:bg-gray-800"
+            className="mt-6 w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800"
           >
             Go to Dashboard
           </button>
@@ -219,16 +197,12 @@ export default function ActivatePage() {
             PSI Savings Group
           </h1>
 
-          <p className="mt-2 text-gray-600">
-            Set up your member login
-          </p>
+          <p className="mt-2 text-gray-600">Set up your member login</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900">
-            {invitedUserId
-              ? "Set Your Password"
-              : "Invitation Required"}
+            {invitedUserId ? "Set Your Password" : "Invitation Required"}
           </h2>
 
           {error && (
@@ -236,17 +210,12 @@ export default function ActivatePage() {
               role="alert"
               className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4"
             >
-              <p className="text-sm text-red-700">
-                {error}
-              </p>
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {invitedUserId ? (
-            <form
-              onSubmit={handleActivate}
-              className="mt-6 space-y-5"
-            >
+            <form onSubmit={handleActivate} className="mt-6 space-y-5">
               <div>
                 <label
                   htmlFor="password"
@@ -260,9 +229,7 @@ export default function ActivatePage() {
                   type="password"
                   autoComplete="new-password"
                   value={password}
-                  onChange={(event) =>
-                    setPassword(event.target.value)
-                  }
+                  onChange={(event) => setPassword(event.target.value)}
                   minLength={8}
                   required
                   disabled={saving}
@@ -283,9 +250,7 @@ export default function ActivatePage() {
                   type="password"
                   autoComplete="new-password"
                   value={confirmPassword}
-                  onChange={(event) =>
-                    setConfirmPassword(event.target.value)
-                  }
+                  onChange={(event) => setConfirmPassword(event.target.value)}
                   minLength={8}
                   required
                   disabled={saving}
@@ -294,28 +259,22 @@ export default function ActivatePage() {
               </div>
 
               <p className="text-sm text-gray-500">
-                Use at least 8 characters. Both passwords
-                must match. Additional Supabase password
-                requirements may also apply.
+                Use at least 8 characters. Both passwords must match. Additional
+                Supabase password requirements may also apply.
               </p>
 
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full rounded-lg bg-gray-900 px-4 py-3 font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {saving
-                  ? "Saving Password…"
-                  : "Set Password"}
+                {saving ? "Saving Password…" : "Set Password"}
               </button>
             </form>
           ) : (
             <p className="mt-6 text-sm text-gray-600">
               Already set your password?{" "}
-              <Link
-                href="/login"
-                className="font-semibold underline"
-              >
+              <Link href="/login" className="font-semibold underline">
                 Go to Login
               </Link>
             </p>

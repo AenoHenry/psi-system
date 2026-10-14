@@ -265,7 +265,7 @@ export default function GroupChat({
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-gray-50 px-5 py-3">
-        <p className="text-xs text-gray-600">{liveStatus}</p>
+        <p className="text-sm text-gray-600">{liveStatus}</p>
         <button
           type="button"
           onClick={() => void refreshRecent()}
@@ -315,7 +315,7 @@ export default function GroupChat({
                   className={`flex ${own ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[90%] rounded-xl px-4 py-3 sm:max-w-[80%] ${own ? "bg-blue-50" : "bg-gray-100"}`}
+                    className={`max-w-[90%] rounded-xl px-4 py-3 sm:max-w-[80%] ${own ? "psi-chat-own" : "psi-chat-other"}`}
                   >
                     <p className="text-sm font-semibold text-gray-900">
                       {memberNames.get(message.sender_member_id) ??
@@ -325,7 +325,7 @@ export default function GroupChat({
                     <p className="mt-1 whitespace-pre-wrap break-words text-sm text-gray-800">
                       {message.body}
                     </p>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-sm text-gray-500">
                       {timestamp(message.created_at)}
                     </p>
                   </div>
@@ -373,13 +373,13 @@ export default function GroupChat({
           className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 disabled:bg-gray-50"
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">
+          <p className="text-sm text-gray-500">
             {[...body].length}/2000 · Visible to all active members
           </p>
           <button
             type="submit"
             disabled={!ready || loading}
-            className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
+            className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
           >
             {loading
               ? "Sending…"
@@ -388,7 +388,7 @@ export default function GroupChat({
                 : "Send Message"}
           </button>
         </div>
-        <p className="mt-3 text-xs text-gray-500">
+        <p className="mt-3 text-sm text-gray-500">
           Be respectful. Do not share passwords, invitation links, or private
           financial details. Editing, deletion, and moderation controls are not
           included in this first version.

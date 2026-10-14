@@ -39,7 +39,7 @@ export default async function AddMemberPage() {
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+            className="mt-6 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
           >
             Back to Dashboard
           </Link>

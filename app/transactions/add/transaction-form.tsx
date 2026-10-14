@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -74,8 +70,7 @@ export default function TransactionForm({
   const isLoan = isDisbursement || isRepayment;
 
   const eligibleMembers = members.filter(
-    (member) =>
-      isRepayment || member.status === "active"
+    (member) => isRepayment || member.status === "active",
   );
 
   const eligibleLoans = loans.filter((loan) => {
@@ -86,15 +81,12 @@ export default function TransactionForm({
     }
 
     return (
-      ["disbursed", "partially_paid", "overdue"].includes(
-        loan.status
-      ) && Number(loan.balance) > 0
+      ["disbursed", "partially_paid", "overdue"].includes(loan.status) &&
+      Number(loan.balance) > 0
     );
   });
 
-  const selectedLoan = eligibleLoans.find(
-    (loan) => loan.id === loanId
-  );
+  const selectedLoan = eligibleLoans.find((loan) => loan.id === loanId);
 
   function changeAction(value: string) {
     setAction(value);
@@ -114,20 +106,12 @@ export default function TransactionForm({
   function changeLoan(value: string) {
     setLoanId(value);
 
-    const loan = eligibleLoans.find(
-      (item) => item.id === value
-    );
+    const loan = eligibleLoans.find((item) => item.id === value);
 
-    setAmount(
-      isDisbursement && loan
-        ? String(loan.principal_amount)
-        : ""
-    );
+    setAmount(isDisbursement && loan ? String(loan.principal_amount) : "");
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (busyRef.current) return;
@@ -137,9 +121,7 @@ export default function TransactionForm({
         !/^\d{1,12}(\.\d{1,2})?$/.test(amount.trim()) ||
         Number(amount) <= 0
       ) {
-        setError(
-          "Enter a positive amount with at most two decimal places."
-        );
+        setError("Enter a positive amount with at most two decimal places.");
         return;
       }
 
@@ -162,16 +144,13 @@ export default function TransactionForm({
     setSuccess("");
 
     try {
-      const response = await fetch(
-        "/api/transaction/record",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(submissionRef.current),
-        }
-      );
+      const response = await fetch("/api/transaction/record", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionRef.current),
+      });
 
       const result = await response.json();
 
@@ -182,14 +161,12 @@ export default function TransactionForm({
           setLocked(false);
         }
 
-        throw new Error(
-          result.error || "Unable to record the transaction."
-        );
+        throw new Error(result.error || "Unable to record the transaction.");
       }
 
       if (!result.success) {
         throw new Error(
-          "The result could not be confirmed. Retry the same submission."
+          "The result could not be confirmed. Retry the same submission.",
         );
       }
 
@@ -199,7 +176,7 @@ export default function TransactionForm({
       setSuccess(
         result.alreadyRecorded
           ? "This submission was already recorded. No duplicate was added."
-          : "Transaction recorded successfully."
+          : "Transaction recorded successfully.",
       );
 
       setMemberId("");
@@ -213,7 +190,7 @@ export default function TransactionForm({
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to confirm the result. Retry the same submission."
+          : "Unable to confirm the result. Retry the same submission.",
       );
     } finally {
       busyRef.current = false;
@@ -224,11 +201,10 @@ export default function TransactionForm({
   const inputClass =
     "w-full rounded-lg border border-gray-300 bg-white " +
     "px-4 py-3 text-gray-900 outline-none " +
-    "focus:border-gray-700 focus:ring-1 focus:ring-gray-700 " +
+    "focus:border-blue-700 focus:ring-1 focus:ring-blue-700 " +
     "disabled:bg-gray-100";
 
-  const labelClass =
-    "mb-2 block text-sm font-medium text-gray-700";
+  const labelClass = "mb-2 block text-sm font-medium text-gray-700";
 
   return (
     <form
@@ -262,16 +238,12 @@ export default function TransactionForm({
 
       {locked && !loading && (
         <div className="mb-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
-          The result is uncertain, so the details are locked.
-          Use “Retry Same Submission” below. Do not record
-          the payment again in another form.
+          The result is uncertain, so the details are locked. Use “Retry Same
+          Submission” below. Do not record the payment again in another form.
         </div>
       )}
 
-      <fieldset
-        disabled={loading || locked}
-        className="min-w-0 space-y-5"
-      >
+      <fieldset disabled={loading || locked} className="min-w-0 space-y-5">
         <div>
           <label htmlFor="action" className={labelClass}>
             Transaction Type
@@ -280,23 +252,15 @@ export default function TransactionForm({
           <select
             id="action"
             value={action}
-            onChange={(event) =>
-              changeAction(event.target.value)
-            }
+            onChange={(event) => changeAction(event.target.value)}
             className={inputClass}
           >
-            <option value="contribution">
-              Member Contribution — Money In
-            </option>
+            <option value="contribution">Member Contribution — Money In</option>
             <option value="loan_disbursement">
               Loan Disbursement — Money Out
             </option>
-            <option value="loan_repayment">
-              Loan Repayment — Money In
-            </option>
-            <option value="expense">
-              Group Expense — Money Out
-            </option>
+            <option value="loan_repayment">Loan Repayment — Money In</option>
+            <option value="expense">Group Expense — Money Out</option>
           </select>
         </div>
 
@@ -309,9 +273,7 @@ export default function TransactionForm({
             <select
               id="member"
               value={memberId}
-              onChange={(event) =>
-                changeMember(event.target.value)
-              }
+              onChange={(event) => changeMember(event.target.value)}
               required
               className={inputClass}
             >
@@ -331,17 +293,13 @@ export default function TransactionForm({
         {isLoan && (
           <div>
             <label htmlFor="loan" className={labelClass}>
-              {isDisbursement
-                ? "Approved Loan"
-                : "Loan to Repay"}
+              {isDisbursement ? "Approved Loan" : "Loan to Repay"}
             </label>
 
             <select
               id="loan"
               value={loanId}
-              onChange={(event) =>
-                changeLoan(event.target.value)
-              }
+              onChange={(event) => changeLoan(event.target.value)}
               required
               disabled={!memberId}
               className={inputClass}
@@ -371,8 +329,7 @@ export default function TransactionForm({
 
             {selectedLoan && (
               <p className="mt-2 text-sm text-gray-600">
-                Total repayable:{" "}
-                {money(selectedLoan.total_amount)}
+                Total repayable: {money(selectedLoan.total_amount)}
                 {!isDisbursement &&
                   ` · Outstanding: ${money(selectedLoan.balance)}`}
               </p>
@@ -391,18 +348,16 @@ export default function TransactionForm({
             min="0.01"
             step="0.01"
             value={amount}
-            onChange={(event) =>
-              setAmount(event.target.value)
-            }
+            onChange={(event) => setAmount(event.target.value)}
             readOnly={isDisbursement}
             required
             className={inputClass}
           />
 
           {isDisbursement && (
-            <p className="mt-2 text-xs text-gray-500">
-              The amount is the selected loan’s approved
-              principal and cannot be edited here.
+            <p className="mt-2 text-sm text-gray-500">
+              The amount is the selected loan’s approved principal and cannot be
+              edited here.
             </p>
           )}
         </div>
@@ -415,9 +370,7 @@ export default function TransactionForm({
           <select
             id="method"
             value={paymentMethod}
-            onChange={(event) =>
-              setPaymentMethod(event.target.value)
-            }
+            onChange={(event) => setPaymentMethod(event.target.value)}
             className={inputClass}
           >
             <option value="cash">Cash</option>
@@ -438,9 +391,7 @@ export default function TransactionForm({
             id="reference"
             type="text"
             value={reference}
-            onChange={(event) =>
-              setReference(event.target.value)
-            }
+            onChange={(event) => setReference(event.target.value)}
             required={paymentMethod === "mpesa"}
             maxLength={200}
             className={inputClass}
@@ -449,17 +400,13 @@ export default function TransactionForm({
 
         <div>
           <label htmlFor="notes" className={labelClass}>
-            {isExpense
-              ? "Expense Description"
-              : "Notes (Optional)"}
+            {isExpense ? "Expense Description" : "Notes (Optional)"}
           </label>
 
           <textarea
             id="notes"
             value={notes}
-            onChange={(event) =>
-              setNotes(event.target.value)
-            }
+            onChange={(event) => setNotes(event.target.value)}
             required={isExpense}
             maxLength={2000}
             rows={3}
@@ -473,16 +420,16 @@ export default function TransactionForm({
         </div>
 
         <p className="text-sm text-gray-500">
-          This records a payment that has already happened.
-          It does not send money or initiate an M-Pesa
-          payment. The recording time is saved automatically.
+          This records a payment that has already happened. It does not send
+          money or initiate an M-Pesa payment. The recording time is saved
+          automatically.
         </p>
       </fieldset>
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-6 w-full rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading
           ? "Recording…"

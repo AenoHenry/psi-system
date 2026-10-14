@@ -36,85 +36,59 @@ export default function LoginPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          padding: "30px",
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-        }}
-      >
-        <h1>PSI Savings Group</h1>
-
-        <p style={{ marginBottom: "25px" }}>
-          Member Login
+    <main className="psi-login-page">
+      <div className="psi-login-card">
+        <div className="psi-auth-mark" aria-hidden="true">
+          PSI
+        </div>
+        <p className="psi-kicker">YOUR COMMUNITY. YOUR FUTURE.</p>
+        <h1>Welcome back</h1>
+        <p className="psi-login-intro">
+          Sign in to your PSI Savings Group account.
         </p>
-
-        <form onSubmit={handleLogin}>
-          <label>
-            Email
-          </label>
-
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Enter your email"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              marginBottom: "15px",
-            }}
-          />
-
-          <label>
-            Password
-          </label>
-
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              marginBottom: "20px",
-            }}
-          />
-
+        <form onSubmit={handleLogin} className="psi-login-form">
+          <div>
+            <label htmlFor="login-email">Email address</label>
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="Enter your email"
+              className="psi-auth-input"
+            />
+          </div>
+          <div>
+            <label htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Enter your password"
+              className="psi-auth-input"
+            />
+          </div>
           {error && (
-            <p style={{ color: "red", marginBottom: "15px" }}>
+            <p role="alert" className="psi-auth-error">
               {error}
             </p>
           )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              cursor: "pointer",
-            }}
-          >
+          <button type="submit" disabled={loading} className="psi-auth-submit">
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        <p className="psi-login-note">
+          Savings, financial records, and group conversations.
+          <br />
+          All in one place.
+        </p>
       </div>
     </main>
   );

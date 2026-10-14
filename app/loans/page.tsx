@@ -219,7 +219,7 @@ export default async function LoansPage() {
                         <p className="text-sm text-gray-500">
                           {loan.member_number}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm text-gray-400">
                           Loan {loan.id.slice(0, 8)}
                         </p>
                       </td>
@@ -234,7 +234,7 @@ export default async function LoansPage() {
                       </td>
                       <td className="px-5 py-4 text-right text-sm text-gray-700">
                         {money(loan.interest_amount)}
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm text-gray-500">
                           {Number(loan.interest_rate)}%
                         </p>
                       </td>
@@ -254,7 +254,7 @@ export default async function LoansPage() {
                       </td>
                       <td className="px-5 py-4">
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${statusClass(loan.status)}`}
+                          className={`rounded-full px-3 py-1 text-sm font-medium ${statusClass(loan.status)}`}
                         >
                           {loan.status.replace(/_/g, " ")}
                         </span>
@@ -334,7 +334,7 @@ function ErrorBox({ title, message }: { title: string; message: string }) {
         <p className="mt-3 text-red-700">{message}</p>
         <Link
           href="/dashboard"
-          className="mt-5 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+          className="mt-5 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
         >
           Back to Dashboard
         </Link>

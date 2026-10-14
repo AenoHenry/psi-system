@@ -26,11 +26,7 @@ type Member = {
   full_name: string;
 };
 
-const outstandingStatuses = [
-  "disbursed",
-  "partially_paid",
-  "overdue",
-];
+const outstandingStatuses = ["disbursed", "partially_paid", "overdue"];
 
 export default async function RepaymentsPage() {
   const supabase = await createClient();
@@ -43,10 +39,7 @@ export default async function RepaymentsPage() {
     redirect("/login");
   }
 
-  const {
-    data: currentMember,
-    error: currentMemberError,
-  } = await supabase
+  const { data: currentMember, error: currentMemberError } = await supabase
     .from("members")
     .select("id, member_number, full_name, role, status")
     .eq("user_id", user.id)
@@ -63,19 +56,14 @@ export default async function RepaymentsPage() {
 
   const canRecord =
     currentMember.status === "active" &&
-    ["chairperson", "treasurer"].includes(
-      currentMember.role
-    );
+    ["chairperson", "treasurer"].includes(currentMember.role);
 
   // Read with the signed-in user's session.
   // Database policies determine which records are visible.
-  const {
-    data: repaymentData,
-    error: repaymentError,
-  } = await supabase
+  const { data: repaymentData, error: repaymentError } = await supabase
     .from("repayments")
     .select(
-      "id, loan_id, member_id, amount, payment_method, mpesa_reference, notes, payment_date"
+      "id, loan_id, member_id, amount, payment_method, mpesa_reference, notes, payment_date",
     )
     .order("payment_date", {
       ascending: false,
@@ -90,56 +78,36 @@ export default async function RepaymentsPage() {
     );
   }
 
-  const {
-    data: loanData,
-    error: loanError,
-  } = await supabase
+  const { data: loanData, error: loanError } = await supabase
     .from("loans")
     .select("id, member_id, balance, status");
 
   if (loanError) {
     return (
-      <ErrorBox
-        title="Unable to Load Loans"
-        message={loanError.message}
-      />
+      <ErrorBox title="Unable to Load Loans" message={loanError.message} />
     );
   }
 
-  const {
-    data: memberData,
-    error: memberError,
-  } = await supabase
+  const { data: memberData, error: memberError } = await supabase
     .from("members")
     .select("id, member_number, full_name");
 
   if (memberError) {
     return (
-      <ErrorBox
-        title="Unable to Load Members"
-        message={memberError.message}
-      />
+      <ErrorBox title="Unable to Load Members" message={memberError.message} />
     );
   }
 
-  const repayments =
-    (repaymentData ?? []) as Repayment[];
+  const repayments = (repaymentData ?? []) as Repayment[];
 
-  const loans =
-    (loanData ?? []) as Loan[];
+  const loans = (loanData ?? []) as Loan[];
 
-  const members =
-    (memberData ?? []) as Member[];
+  const members = (memberData ?? []) as Member[];
 
-  const loanLookup = new Map(
-    loans.map((loan) => [loan.id, loan] as const)
-  );
+  const loanLookup = new Map(loans.map((loan) => [loan.id, loan] as const));
 
   const memberLookup = new Map(
-    members.map((member) => [
-      member.id,
-      member,
-    ] as const)
+    members.map((member) => [member.id, member] as const),
   );
 
   const repaymentRows = repayments.map((repayment) => {
@@ -148,43 +116,26 @@ export default async function RepaymentsPage() {
 
     return {
       ...repayment,
-      memberName:
-        member?.full_name ?? "Member unavailable",
-      memberNumber:
-        member?.member_number ?? "—",
-      currentLoanBalance:
-        loan?.balance ?? null,
-      currentLoanStatus:
-        loan?.status ?? null,
+      memberName: member?.full_name ?? "Member unavailable",
+      memberNumber: member?.member_number ?? "—",
+      currentLoanBalance: loan?.balance ?? null,
+      currentLoanStatus: loan?.status ?? null,
     };
   });
 
   const totalRepayments = repayments.reduce(
-    (total, repayment) =>
-      total + Number(repayment.amount),
-    0
+    (total, repayment) => total + Number(repayment.amount),
+    0,
   );
 
   // Only loans already disbursed contribute to debt.
   const totalOutstanding = loans
-    .filter((loan) =>
-      outstandingStatuses.includes(loan.status)
-    )
-    .reduce(
-      (total, loan) => total + Number(loan.balance),
-      0
-    );
+    .filter((loan) => outstandingStatuses.includes(loan.status))
+    .reduce((total, loan) => total + Number(loan.balance), 0);
 
   const myTotalRepayments = repayments
-    .filter(
-      (repayment) =>
-        repayment.member_id === currentMember.id
-    )
-    .reduce(
-      (total, repayment) =>
-        total + Number(repayment.amount),
-      0
-    );
+    .filter((repayment) => repayment.member_id === currentMember.id)
+    .reduce((total, repayment) => total + Number(repayment.amount), 0);
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
@@ -210,9 +161,7 @@ export default async function RepaymentsPage() {
 
           <div className="flex flex-col gap-4 md:items-end">
             <div className="text-left md:text-right">
-              <p className="text-sm text-gray-500">
-                Logged in as
-              </p>
+              <p className="text-sm text-gray-500">Logged in as</p>
 
               <p className="font-semibold text-gray-900">
                 {currentMember.full_name}
@@ -226,7 +175,7 @@ export default async function RepaymentsPage() {
             {canRecord && (
               <Link
                 href="/transactions/add"
-                className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
               >
                 + Record Repayment
               </Link>
@@ -265,9 +214,9 @@ export default async function RepaymentsPage() {
             </h2>
 
             <p className="text-sm text-gray-500">
-              Payment dates are shown in Kenya time.
-              Loan balances and statuses show their current
-              values, not their values at the time of payment.
+              Payment dates are shown in Kenya time. Loan balances and statuses
+              show their current values, not their values at the time of
+              payment.
             </p>
           </div>
 
@@ -316,10 +265,7 @@ export default async function RepaymentsPage() {
 
                 <tbody className="divide-y">
                   {repaymentRows.map((repayment) => (
-                    <tr
-                      key={repayment.id}
-                      className="hover:bg-gray-50"
-                    >
+                    <tr key={repayment.id} className="hover:bg-gray-50">
                       <td className="px-5 py-4">
                         <p className="font-semibold text-gray-900">
                           {repayment.memberName}
@@ -346,9 +292,7 @@ export default async function RepaymentsPage() {
                       </td>
 
                       <td className="px-5 py-4 text-sm text-gray-700">
-                        {formatPaymentMethod(
-                          repayment.payment_method
-                        )}
+                        {formatPaymentMethod(repayment.payment_method)}
                       </td>
 
                       <td className="px-5 py-4 text-sm text-gray-700">
@@ -358,24 +302,18 @@ export default async function RepaymentsPage() {
                       <td className="px-5 py-4 text-right font-medium text-gray-900">
                         {repayment.currentLoanBalance === null
                           ? "—"
-                          : formatMoney(
-                              repayment.currentLoanBalance
-                            )}
+                          : formatMoney(repayment.currentLoanBalance)}
                       </td>
 
                       <td className="px-5 py-4">
                         {repayment.currentLoanStatus ? (
                           <span
                             className={
-                              "rounded-full px-3 py-1 text-xs font-medium " +
-                              statusClass(
-                                repayment.currentLoanStatus
-                              )
+                              "rounded-full px-3 py-1 text-sm font-medium " +
+                              statusClass(repayment.currentLoanStatus)
                             }
                           >
-                            {formatStatus(
-                              repayment.currentLoanStatus
-                            )}
+                            {formatStatus(repayment.currentLoanStatus)}
                           </span>
                         ) : (
                           <span className="text-sm text-gray-500">
@@ -395,8 +333,7 @@ export default async function RepaymentsPage() {
 
             {repaymentRows.length === 0 && (
               <div className="p-10 text-center text-sm text-gray-500">
-                No repayment records are available to
-                your account.
+                No repayment records are available to your account.
               </div>
             )}
           </div>
@@ -409,34 +346,30 @@ export default async function RepaymentsPage() {
           </h2>
 
           <p className="mt-2 text-sm text-blue-800">
-            To record a repayment, open Record Transaction
-            and select Loan Repayment. Then select the
-            member and the specific loan.
+            To record a repayment, open Record Transaction and select Loan
+            Repayment. Then select the member and the specific loan.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            Only an active Chairperson or Treasurer can
-            record a repayment. The shared function saves
-            the repayment, updates the loan balance, and
+            Only an active Chairperson or Treasurer can record a repayment. The
+            shared function saves the repayment, updates the loan balance, and
             adds the transaction together.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            A repayment cannot exceed the outstanding
-            balance. Do not record the same payment again
-            as a separate transaction.
+            A repayment cannot exceed the outstanding balance. Do not record the
+            same payment again as a separate transaction.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            The current workflow tracks total repaid and
-            the combined principal-and-interest balance.
-            Separate interest and principal allocations
-            are not stored by this workflow.
+            The current workflow tracks total repaid and the combined
+            principal-and-interest balance. Separate interest and principal
+            allocations are not stored by this workflow.
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            New loans are due 21 days after disbursement.
-            Summary figures cover the records loaded above.
+            New loans are due 21 days after disbursement. Summary figures cover
+            the records loaded above.
           </p>
         </section>
       </div>
@@ -499,47 +432,27 @@ function statusClass(status: string) {
   return "bg-yellow-100 text-yellow-700";
 }
 
-function SummaryCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-gray-500">
-        {title}
-      </p>
+      <p className="text-sm text-gray-500">{title}</p>
 
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }
 
-function ErrorBox({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
+function ErrorBox({ title, message }: { title: string; message: string }) {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-2xl font-bold text-red-800">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-bold text-red-800">{title}</h1>
 
-        <p className="mt-3 text-red-700">
-          {message}
-        </p>
+        <p className="mt-3 text-red-700">{message}</p>
 
         <Link
           href="/dashboard"
-          className="mt-5 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+          className="mt-5 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
         >
           Back to Dashboard
         </Link>

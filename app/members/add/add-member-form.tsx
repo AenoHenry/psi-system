@@ -56,7 +56,7 @@ export default function AddMemberForm() {
   }
 
   const inputClassName =
-    "w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700 disabled:bg-gray-100";
+    "w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 disabled:bg-gray-100";
   const labelClassName = "mb-2 block text-sm font-medium text-gray-700";
 
   return (
@@ -180,7 +180,7 @@ export default function AddMemberForm() {
                     required
                     className={inputClassName}
                   />
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-sm text-gray-500">
                     Use an email address the member can access.
                   </p>
                 </div>
@@ -207,7 +207,7 @@ export default function AddMemberForm() {
                   <option value="secretary">Secretary</option>
                   <option value="treasurer">Treasurer</option>
                 </select>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-sm text-gray-500">
                   The Chairperson role cannot be assigned from this form.
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function AddMemberForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "Creating Member..." : "Create PSI Member"}
               </button>

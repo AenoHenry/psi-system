@@ -100,7 +100,7 @@ export default async function ReportsPage() {
             <p className="mt-1 text-gray-600">
               Group-wide aggregates and your personal financial position
             </p>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-sm text-gray-500">
               Summary generated {formatDate(summary.generated_at)} · Kenya time
             </p>
           </div>
@@ -342,7 +342,7 @@ function RecordLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+      className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
     >
       {label}
     </Link>
@@ -356,7 +356,7 @@ function ErrorBox({ title, message }: { title: string; message: string }) {
         <p className="mt-2 text-sm text-red-700">{message}</p>
         <Link
           href="/dashboard"
-          className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+          className="mt-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white"
         >
           Back to Dashboard
         </Link>
