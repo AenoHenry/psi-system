@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -84,8 +84,14 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        <Link
+  href="/forgot-password"
+  className="mt-4 inline-flex min-h-11 items-center font-semibold text-blue-700"
+>
+  Forgot password?
+</Link>
         <p className="psi-login-note">
-          Save let's grow together.
+         Save let&apos;s grow together.
           <br />
           Dev Aeno Henry
           <br />

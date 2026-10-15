@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useState,
@@ -15,12 +16,10 @@ export default function LogoutButton() {
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    // Controls button visibility only.
-    // Existing page and database permissions remain unchanged.
     const { data } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSignedIn(Boolean(session));
-      }
+      },
     );
 
     return () => {
@@ -42,12 +41,17 @@ export default function LogoutButton() {
     });
   }
 
-  if (!signedIn) {
-    return null;
-  }
+  if (!signedIn) return null;
 
   return (
     <div className="flex flex-col items-end gap-2">
+      <Link
+        href="/account"
+        className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-blue-700"
+      >
+        Password
+      </Link>
+
       <button
         type="button"
         onClick={handleLogout}
